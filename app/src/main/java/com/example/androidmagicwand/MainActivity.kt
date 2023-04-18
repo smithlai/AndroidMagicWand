@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val converter = MyConverter()
     private var prev_timestamp:Long = 0
     private var triggered:Long = 0
-    private var linear_acc:D1Array<Double> = MyConverter.Null_XYZ
+//    private var linear_acc:D1Array<Double> = MyConverter.Null_XYZ
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -98,7 +98,31 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         if (event.sensor.type == Sensor.TYPE_LINEAR_ACCELERATION) {
 //            converter.setLinear(event.values)
-            linear_acc = mk.ndarray(event.values).asType<Double>()
+            var linear_acc = mk.ndarray(event.values).asType<Double>()
+
+
+            var w_linear = linear_acc
+//            w_linear = converter.toEatrhFrame(w_linear)
+            converter.add_earth_linear(w_linear, System.nanoTime())
+
+            linearTextView!!.text = "Time:\n "+
+                    "X: ${(w_linear[0]*1_000).toInt()}\n"+
+                    "Y: ${(w_linear[1]*1_000).toInt()}\n"+
+                    "Z: ${(w_linear[2]*1_000).toInt()}"
+//            orientationTextView!!.text = "Linear Acc\n: ${w_linear.get(0)}\n${w_linear.get(1)}\n${w_linear.get(2)}\n"
+
+            if (System.nanoTime() - triggered > 10_000_000L) {
+                // 10 second interval
+                val stroke = converter.stroke
+                stroke?.apply {
+                    yyy?.updateDataXYZ(stroke.first, stroke.second, stroke.third)
+                    yyy?.notifyObservers()
+                    triggered = System.nanoTime()
+                }
+            }
+
+
+
         }
 
         if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
@@ -112,30 +136,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             SensorManager.getOrientation(matrix, orientation)
 
             converter.setupRotationMatrix(orientation)
-
-
-            if (linear_acc != MyConverter.Null_XYZ){
-                var w_linear = linear_acc
-                linear_acc == MyConverter.Null_XYZ
-//                w_linear = converter.toEatrhFrame(w_linear)
-                converter.add_earth_linear(w_linear, System.nanoTime())
-
-                linearTextView!!.text = "Time:\n "+
-                        "X: ${(w_linear[0]*1_000).toInt()}\n"+
-                        "Y: ${(w_linear[1]*1_000).toInt()}\n"+
-                        "Z: ${(w_linear[2]*1_000).toInt()}"
-//            orientationTextView!!.text = "Linear Acc\n: ${w_linear.get(0)}\n${w_linear.get(1)}\n${w_linear.get(2)}\n"
-
-                if (System.nanoTime() - triggered > 10_000_000L) {
-                    // 10 second interval
-                    val stroke = converter.stroke
-                    stroke?.apply {
-                        yyy?.updateDataXYZ(stroke.first, stroke.second, stroke.third)
-                        yyy?.notifyObservers()
-                        triggered = System.nanoTime()
-                    }
-                }
-            }
         }
 
     }

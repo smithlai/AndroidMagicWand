@@ -16,16 +16,17 @@ class MyConverter {
     companion object{
         final val Null_XYZ:D1Array<Double> = mk.zeros(3)
         final val Null_RotationMatrix:D2Array<Double> = mk.zeros(3,3)
-        final val HISTORY_START_BUFFER = 25
+        final val HISTORY_START_BUFFER = 20
         final val HISTORY_END_BUFFER = 50
-        final val ACC_TRIGGER_START = 1
-        final val ACC_TRIGGER_END = 1.5
+        final val ACC_TRIGGER_START = 6
+        final val ACC_TRIGGER_END = 3
+        final val TRIM_TAIL = 100
     }
 
 //    var linear:D1Array<Double> = Null_XYZ
 //        private set;
     private var isRecording = false
-    public var historyItems = mutableListOf<HistoryItems>()
+    private var historyItems = mutableListOf<HistoryItems>()
 
     var stroke:Triple<List<Double>,List<Double>,List<Double>>? = null
     private set
@@ -86,7 +87,7 @@ class MyConverter {
      */
     fun toEatrhFrame(device_xyz:D1Array<Double>): D1Array<Double> {
         if (device_xyz === Null_XYZ)
-            return Null_XYZ
+            return device_xyz
         val _xyz = device_xyz.reshape(3,1)
         var earthxyz = rotationMatrix.dot(_xyz).reshape(3)
         return earthxyz
@@ -97,11 +98,9 @@ class MyConverter {
         val new_history = trapz(last, linear_xyz, nano_timestamp)
         historyItems.add(new_history)
         if (!isRecording) {
-//            Log.e("AAA", "0:" + historyItems.size)
             if (historyItems.size >= HISTORY_START_BUFFER) {
                 val istart = max(historyItems.size - HISTORY_START_BUFFER, 0)
                 historyItems = historyItems.subList(istart, historyItems.size)
-//                Log.e("AAA", historyItems.joinToString(","))
                 var isTrigger = historyItems.all { it -> it.acc.any { acc -> Math.abs(acc) > ACC_TRIGGER_START } }
                 if (isTrigger){
                     isRecording = true
@@ -112,19 +111,40 @@ class MyConverter {
 //            Log.e("AAA", "-0: " + historyItems.size)
             if (historyItems.size >= HISTORY_END_BUFFER+HISTORY_START_BUFFER) {
                 val iend = max(historyItems.size - HISTORY_END_BUFFER, 0)
-                val sublist = historyItems.subList(iend, historyItems.size)
-                stroke = normalize(historyItems.subList(0, iend),100)
-                var isTrigger = sublist.all { it -> it.acc.all { acc -> Math.abs(acc) < ACC_TRIGGER_END } }
+                val sublist1 = historyItems.subList(iend, historyItems.size)
+                val sublist2 = historyItems.subList(0, iend)
+                var isTrigger = sublist1.all { it -> it.acc.all { acc -> Math.abs(acc) < ACC_TRIGGER_END } }
                 if (isTrigger){
                     Log.e("AAA", "Drawing Stopped......")
                     isRecording = false
+                    historyItems = mutableListOf<HistoryItems>()
 
-                    historyItems.clear()
+                    stroke = normalize(trim_last(sublist2, TRIM_TAIL),100)
 
+                }else{
+                    stroke = normalize(sublist2,100)
                 }
             }
 
         }
+    }
+    fun trim_last(list:MutableList<HistoryItems>, trim_ms:Int):MutableList<HistoryItems>{
+        val trim_nano = trim_ms * 1_000_000
+        val last = list.last().nano_timestamp
+
+        var trim_idx = -1
+        for (i in list.size-2 downTo  0){
+            val t = list[i].nano_timestamp
+            if ((last - t) >= trim_nano){
+                trim_idx = i
+                break
+            }
+        }
+        if (trim_idx>0)
+            return list.subList(0, trim_idx)
+        else
+            return list
+
     }
     fun normalize(items:List<HistoryItems>, size:Int = 100):Triple<List<Double>,List<Double>,List<Double>>?{
         var xList = items.map { it.distance[0] }
@@ -185,8 +205,8 @@ class MyConverter {
         if (prev != null) {
             var dt = (nano_timestamp - prev.nano_timestamp).toDouble()
             dt = dt * 1E-9
-            val delta_speed = ((prev.acc + linear_acc) / 2.0) * dt
-            val vel = delta_speed
+            val vel = ((prev.acc + linear_acc) / 2.0) * dt
+
 
             val delta_distance = vel * dt
             val distance = prev.distance + delta_distance
