@@ -47,30 +47,30 @@
 <!--            android:text="Gyro:"-->
 <!--            android:textSize="24sp" />-->
 
-        <TextView
-            android:id="@+id/imuTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="IMU:"
-            android:textSize="24sp" />
-        <TextView
-            android:id="@+id/gravTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gyro:"
-            android:textSize="24sp" />
+<!--        <TextView-->
+<!--            android:id="@+id/imuTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="IMU:"-->
+<!--            android:textSize="24sp" />-->
+<!--        <TextView-->
+<!--            android:id="@+id/gravTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Gyro:"-->
+<!--            android:textSize="24sp" />-->
         <TextView
             android:id="@+id/linearTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Linear:"
             android:textSize="24sp" />
-        <TextView
-            android:id="@+id/orientationTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Rotation:"
-            android:textSize="24sp" />
+<!--        <TextView-->
+<!--            android:id="@+id/orientationTextView"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Rotation:"-->
+<!--            android:textSize="24sp" />-->
 
     </LinearLayout>
 </FrameLayout>
