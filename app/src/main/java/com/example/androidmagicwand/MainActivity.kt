@@ -137,9 +137,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     if (previous_stroke !== stroke) {
                         trajectorySeries2D.updateDataXYZ(stroke.first, stroke.second, stroke.third)
                         trajectorySeries2D.notifyObservers()
-                        triggered = System.nanoTime()
+
                         trajectorySeries3D.updateDataXYZ(stroke.first, stroke.second, stroke.third)
-//                    zzz.myrand
+
+                        triggered = System.nanoTime()
                         previous_stroke = stroke
                     }
                 }

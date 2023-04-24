@@ -1,12 +1,18 @@
 package com.example.androidmagicwand.orsoncharts
 
+import android.graphics.Color
 import android.view.View
 import com.orsoncharts.android.Chart3DFactory
 import com.orsoncharts.android.ChartSurfaceView
+import com.orsoncharts.android.Range
+import com.orsoncharts.android.axis.CategoryAxis3D
+import com.orsoncharts.android.axis.NumberAxis3D
+import com.orsoncharts.android.axis.StandardCategoryAxis3D
 import com.orsoncharts.android.data.xyz.XYZSeries
 import com.orsoncharts.android.data.xyz.XYZSeriesCollection
 import com.orsoncharts.android.graphics3d.Point3D
 import com.orsoncharts.android.graphics3d.ViewPoint3D
+import com.orsoncharts.android.plot.XYZPlot
 
 class TrajectorySeries3D{
     constructor() {}
@@ -48,7 +54,7 @@ class TrajectorySeries3D{
             )
         })
     }
-    fun updateDataXYZ(x: List<Double>, y: List<Double>, z: List<Double>) {
+    fun updateDataXYZ(x: List<Double>, y: List<Double>, z: List<Double>, min:Double=-50.0, max:Double=50.0) {
 
         val series = XYZSeries("Trajectory")
         for (i in 0 until x.size){
@@ -64,11 +70,21 @@ class TrajectorySeries3D{
 //        if (prev_point != null) {
 //            chart.viewPoint = prev_point
 //        }
-        val position = Point3D(0.0, 100.0, 0.0)
-        val orientation: Double = Math.PI
-        val viewpoint = ViewPoint3D(position, orientation)
-        chart.viewPoint = viewpoint
+        val viewpoint = chart.viewPoint
+        viewpoint.moveUpDown(Math.PI/180 * -75)
+        chart.setChartBoxColor(Color.WHITE)
+        val plot = chart.plot as XYZPlot
+        val xAxis = NumberAxis3D("X Axis")
+        val yAxis = NumberAxis3D("Y Axis")
+        val zAxis = NumberAxis3D("Z Axis")
 
+        // 設定座標軸的範圍
+        xAxis.range = Range(min,max)
+        yAxis.range = Range(min,max)
+        zAxis.range = Range(min,max)
+        plot.xAxis = xAxis
+        plot.yAxis = yAxis
+        plot.zAxis = zAxis
         orson_chartview.setChart(chart)
         // here we add a listener that will zoom-to-fit the new chart when
         // the layout changes...

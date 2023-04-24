@@ -108,7 +108,7 @@ class MyConverter {
                 }
             }
         }else{
-//            Log.e("AAA", "-0: " + historyItems.size)
+
             if (historyItems.size >= HISTORY_END_BUFFER+HISTORY_START_BUFFER) {
                 val iend = max(historyItems.size - HISTORY_END_BUFFER, 0)
                 val sublist1 = historyItems.subList(iend, historyItems.size)
@@ -162,7 +162,7 @@ class MyConverter {
 
         val ymax = xList.max()
         val ymin = xList.min()
-        val ydis = xmax - xmin
+        val ydis = ymax - ymin
 
         val zmax = zList.max()
         val zmin = zList.min()
@@ -181,8 +181,10 @@ class MyConverter {
         val dis = max - min
         val res = size/dis
 
+        val resy = size/ydis
+
         xList = xList.map { it ->  it*res}
-        yList = yList.map { it ->  it*res}
+        yList = yList.map { it ->  it*resy}
         zList = zList.map { it ->  it*res}
 
 
