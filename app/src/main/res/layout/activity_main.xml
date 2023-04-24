@@ -3,26 +3,20 @@
     android:layout_height="match_parent"
     xmlns:ap="http://schemas.android.com/apk/res-auto">
 
-<!--    <com.example.AndroidMagicWand.MyCustomView-->
-<!--        android:id="@+id/drawView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"/>-->
-<!--    <com.androidplot.xy.XYPlot-->
-<!--        style="@style/APDefacto.Dark"-->
-<!--        android:id="@+id/plot"-->
-<!--        android:layout_width="fill_parent"-->
-<!--        android:layout_height="fill_parent"-->
-<!--        ap:title="A Simple XY Plot"-->
-<!--        ap:rangeTitle="range"-->
-<!--        ap:domainTitle="domain"-->
-<!--        ap:lineLabels="left|bottom"-->
-<!--        ap:lineLabelRotationBottom="-45"/>-->
+    <LinearLayout
+        android:id="@+id/graphLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
     <com.androidplot.xy.XYPlot
         android:id="@+id/dynamicXYPlot"
         style="@style/APDefacto.Dark"
         androidplot.renderMode="use_background_thread"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         ap:domainTitle="Domain"
         ap:legendAnchor="right_bottom"
         ap:legendHeight="25dp"
@@ -32,6 +26,17 @@
         ap:rangeTitle="Range"
         ap:title="A Dynamic XY Plot" />
 
+    <com.orsoncharts.android.ChartSurfaceView
+        android:id="@+id/chartView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+<!--        <com.example.androidmagicwand.opengl.myGLTextureView-->
+<!--            android:id="@+id/glSurfaceView"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:layout_weight="1" />-->
+    </LinearLayout>
     <LinearLayout
         android:id="@+id/textLayout"
         android:layout_width="wrap_content"
@@ -39,38 +44,13 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:orientation="vertical">
-
-<!--        <TextView-->
-<!--            android:id="@+id/gyroTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Gyro:"-->
-<!--            android:textSize="24sp" />-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/imuTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="IMU:"-->
-<!--            android:textSize="24sp" />-->
-<!--        <TextView-->
-<!--            android:id="@+id/gravTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Gyro:"-->
-<!--            android:textSize="24sp" />-->
         <TextView
             android:id="@+id/linearTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Linear:"
             android:textSize="24sp" />
-<!--        <TextView-->
-<!--            android:id="@+id/orientationTextView"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Rotation:"-->
-<!--            android:textSize="24sp" />-->
+
 
     </LinearLayout>
 </FrameLayout>

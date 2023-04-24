@@ -184,12 +184,8 @@ class MyConverter {
         xList = xList.map { it ->  it*res}
         yList = yList.map { it ->  it*res}
         zList = zList.map { it ->  it*res}
-//        val stroke3d = mutableListOf<Triple<Double,Double,Double>>()
-//        for (i in 0 until xList.size){
-////            Log.e("AAA", "${i+1}/${xList.size}: ${xList[i]}, ${zList[i]}")
-//            val v = Triple(xList[i],yList[i],zList[i])
-//            stroke3d.add(v)
-//        }
+
+
         return Triple(xList, yList, zList)
     }
     fun centrolize(values:List<Double>) : List<Double>{
@@ -200,6 +196,41 @@ class MyConverter {
 
         return values.map { it-center }
     }
+
+    fun interpolateLine(start: Pair<Int,Int>, end:Pair<Int,Int>): List<Pair<Int,Int>> {
+        val interpolate_points = mutableListOf<Pair<Int,Int>>()
+        val deltaX = end.first - start.first
+        val deltaY = end.second - start.second
+
+        var startPoint = Pair(start.first, start.second)
+        var endPoint = Pair(end.first, end.second)
+
+        if ( deltaX == 0 && deltaY == 0) {
+            Log.e("AAAA","3")
+            return interpolate_points
+        }
+        //follow X
+        else if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+            Log.e("AAAA","1 : ${startPoint.first.rangeTo(endPoint.first)}")
+            val slope = deltaY.toDouble() / deltaX.toDouble() //deltaX always > 0
+            for (x in startPoint.first.rangeTo(endPoint.first) ){
+                Log.e("AAAA","${x}")
+                val y = (x - startPoint.first) * slope + startPoint.second
+                interpolate_points.add(Pair(x,Math.round(y).toInt()))
+            }
+        //follow Y to avoid infiniate slope (X=0)
+        }else{ // if (Math.abs(deltaX) < Math.abs(deltaY)){
+            Log.e("AAAA","2")
+            val slope = deltaX.toDouble() / deltaY.toDouble() //deltaY always > 0
+            for (y in startPoint.second.rangeTo(endPoint.second) ){
+                val x = (y - startPoint.second) * slope + startPoint.first
+                interpolate_points.add(Pair(Math.round(x).toInt(),y))
+            }
+        }
+
+        return interpolate_points
+    }
+
 
     fun trapz(prev: HistoryItems?, linear_acc:D1Array<Double>, nano_timestamp: Long): HistoryItems {
         if (prev != null) {

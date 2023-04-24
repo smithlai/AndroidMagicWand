@@ -8,14 +8,17 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.androidplot.xy.XYPlot
+import com.example.androidmagicwand.mpchartplot.TrajectorySeries
+import com.example.androidmagicwand.opengl.GLesAgent
+import com.example.androidmagicwand.orsoncharts.TrajectorySeries3D
+import com.orsoncharts.android.ChartSurfaceView
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
-import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
 import org.jetbrains.kotlinx.multik.ndarray.data.get
 
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
-    private var sensorManager: SensorManager? = null
+    private lateinit var sensorManager: SensorManager
 //    private var gyroSensor: Sensor? = null
     private var imuSensor: Sensor? = null
     private var gravSensor: Sensor? = null
@@ -28,13 +31,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var linearTextView: TextView? = null
 //    private var orientationTextView: TextView? = null
 
-    private var myplot: XYPlot? = null
-    var yyy:TrajectorySeries? = null
+    private lateinit var myplot: XYPlot
+    private lateinit var trajectorySeries2D: TrajectorySeries
 
     private val converter = MyConverter()
+    private var previous_stroke:Triple<List<Double>,List<Double>,List<Double>>? = null
     private var prev_timestamp:Long = 0
     private var triggered:Long = 0
-//    private var linear_acc:D1Array<Double> = MyConverter.Null_XYZ
+    val glagent = GLesAgent()
+
+    private lateinit var trajectorySeries3D: TrajectorySeries3D
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -47,49 +54,61 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
         // 取得陀螺儀 Sensor 實例
-//        gyroSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+//        gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
 
         // 取得 IMU Sensor 實例
-//        imuSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+//        imuSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         // 取得 Gravity Sensor 實例
-//        gravSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_GRAVITY)
+//        gravSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
 
         // 取得 Linear Sensor 實例
-        linearSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        linearSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
         // 取得 rotationsensor Sensor 實例
-        rotationSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         myplot = findViewById(R.id.dynamicXYPlot) as XYPlot;
-        yyy = TrajectorySeries();
-        yyy?.setup(myplot)
+        trajectorySeries2D = TrajectorySeries();
+        trajectorySeries2D.setup(myplot)
+
+
+//        val mGLTextureView = findViewById<myGLTextureView>(R.id.glSurfaceView) as myGLTextureView?
+//        if (!glagent.setup(this,mGLTextureView)){
+//            finish()
+//        }
+        val orson_chartview = findViewById(R.id.chartView) as ChartSurfaceView
+        trajectorySeries3D = TrajectorySeries3D().also { it.setup(orson_chartview!!)}
+
+
     }
 
     public override fun onResume() {
         super.onResume()
 
         // 註冊陀螺儀和 IMU 監聽器
-//        sensorManager!!.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL)
-//        sensorManager!!.registerListener(this, imuSensor, SensorManager.SENSOR_DELAY_NORMAL)
-//        sensorManager!!.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_NORMAL)
+//        sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL)
+//        sensorManager.registerListener(this, imuSensor, SensorManager.SENSOR_DELAY_NORMAL)
+//        sensorManager.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_NORMAL)
         // Normal: 130 ms
         // UI: 60 ms
         // Game: 15 ms
         // Fast: ?? ms
-        sensorManager!!.registerListener(this, linearSensor, SensorManager.SENSOR_DELAY_FASTEST)
-        sensorManager!!.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(this, linearSensor, SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_FASTEST)
 
-        // kick off the data generating thread:
-//        myThread = Thread(yyy?.data)
-//        myThread?.start()
+
+        glagent?.onResume()
     }
 
     public override fun onPause() {
-        sensorManager!!.unregisterListener(this)
-//        yyy?.data?.stopThread()
+        // 取消註冊陀螺儀和 IMU 監聽器
+        sensorManager.unregisterListener(this)
+
+        glagent.onPause()
+
         super.onPause()
 
-        // 取消註冊陀螺儀和 IMU 監聽器
+
 
     }
 
@@ -115,9 +134,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 // 10 second interval
                 val stroke = converter.stroke
                 stroke?.apply {
-                    yyy?.updateDataXYZ(stroke.first, stroke.second, stroke.third)
-                    yyy?.notifyObservers()
-                    triggered = System.nanoTime()
+                    if (previous_stroke !== stroke) {
+                        trajectorySeries2D.updateDataXYZ(stroke.first, stroke.second, stroke.third)
+                        trajectorySeries2D.notifyObservers()
+                        triggered = System.nanoTime()
+                        trajectorySeries3D.updateDataXYZ(stroke.first, stroke.second, stroke.third)
+//                    zzz.myrand
+                        previous_stroke = stroke
+                    }
                 }
             }
 

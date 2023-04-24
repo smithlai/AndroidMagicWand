@@ -1,4 +1,4 @@
-package com.example.androidmagicwand;
+package com.example.androidmagicwand.mpchartplot;
 
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
@@ -45,8 +45,8 @@ public class TrajectorySeries implements XYSeries {
 //    DataYYY.HistoryXYSeries data;
 
     private XYPlot dynamicPlotTable;
-    TrajectorySeries(){}
-    void setup(XYPlot dynamicPlotTable){
+    public TrajectorySeries(){}
+    public void setup(XYPlot dynamicPlotTable){
         // get handles to our View defined in layout.xml:
         this.dynamicPlotTable = dynamicPlotTable;
 
@@ -74,13 +74,13 @@ public class TrajectorySeries implements XYSeries {
         dynamicPlotTable.setDomainStepValue(5);
 
         dynamicPlotTable.setRangeStepMode(StepMode.INCREMENT_BY_VAL);
-        dynamicPlotTable.setRangeStepValue(10);
+        dynamicPlotTable.setRangeStepValue(5);
 
         dynamicPlotTable.getGraph().getLineLabelStyle(
                 XYGraphWidget.Edge.LEFT).setFormat(new DecimalFormat("###.#"));
 
         // uncomment this line to freeze the range boundaries:
-        dynamicPlotTable.setRangeBoundaries(-100, 100, BoundaryMode.FIXED);
+        dynamicPlotTable.setRangeBoundaries(-50, 50, BoundaryMode.FIXED);
 
         // create a dash effect for domain and range grid lines:
         DashPathEffect dashFx = new DashPathEffect(
