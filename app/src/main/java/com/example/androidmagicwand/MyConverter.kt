@@ -1,6 +1,8 @@
 package com.example.androidmagicwand
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.os.Environment
 import android.util.Log
-import org.jetbrains.kotlinx.multik.api.empty
 import org.jetbrains.kotlinx.multik.api.linalg.dot
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
@@ -8,18 +10,26 @@ import org.jetbrains.kotlinx.multik.api.zeros
 import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
 import org.jetbrains.kotlinx.multik.ndarray.data.D2Array
 import org.jetbrains.kotlinx.multik.ndarray.data.get
-import org.jetbrains.kotlinx.multik.ndarray.data.set
 import org.jetbrains.kotlinx.multik.ndarray.operations.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.*
 import kotlin.math.*
 
 class MyConverter {
+    private infix fun Int.toward(to: Int): IntProgression {
+        val step = if (this > to) -1 else 1
+        return IntProgression.fromClosedRange(this, to, step)
+    }
     companion object{
         final val Null_XYZ:D1Array<Double> = mk.zeros(3)
         final val Null_RotationMatrix:D2Array<Double> = mk.zeros(3,3)
         final val HISTORY_START_BUFFER = 20
         final val HISTORY_END_BUFFER = 50
-        final val ACC_TRIGGER_START = 6
-        final val ACC_TRIGGER_END = 3
+        final val ACC_TRIGGER_START_XZ = 2
+        final val ACC_TRIGGER_START_Y = 2
+        final val ACC_TRIGGER_END = 1
         final val TRIM_TAIL = 100
     }
 
@@ -101,7 +111,8 @@ class MyConverter {
             if (historyItems.size >= HISTORY_START_BUFFER) {
                 val istart = max(historyItems.size - HISTORY_START_BUFFER, 0)
                 historyItems = historyItems.subList(istart, historyItems.size)
-                var isTrigger = historyItems.all { it -> it.acc.any { acc -> Math.abs(acc) > ACC_TRIGGER_START } }
+//                var isTrigger = historyItems.all { it -> it.acc.any { acc -> Math.abs(acc) > ACC_TRIGGER_START } }
+                var isTrigger = historyItems.all { it -> listOf(it.acc[0], it.acc[2]).any{ it2 -> it2 > ACC_TRIGGER_START_XZ} || (it.acc[2] > ACC_TRIGGER_START_Y) }
                 if (isTrigger){
                     isRecording = true
                     Log.e("AAA", "Drawing Start......")
@@ -114,12 +125,16 @@ class MyConverter {
                 val sublist1 = historyItems.subList(iend, historyItems.size)
                 val sublist2 = historyItems.subList(0, iend)
                 var isTrigger = sublist1.all { it -> it.acc.all { acc -> Math.abs(acc) < ACC_TRIGGER_END } }
+
                 if (isTrigger){
                     Log.e("AAA", "Drawing Stopped......")
                     isRecording = false
                     historyItems = mutableListOf<HistoryItems>()
 
                     stroke = normalize(trim_last(sublist2, TRIM_TAIL),100)
+                    val interpolateLines = interpolateLines(stroke!!)
+                    val rasterize_stroke = rasterize_stroke(interpolateLines,100)
+                    savetoBitmap(rasterize_stroke,100)
 
                 }else{
                     stroke = normalize(sublist2,100)
@@ -146,22 +161,22 @@ class MyConverter {
             return list
 
     }
-    fun normalize(items:List<HistoryItems>, size:Int = 100):Triple<List<Double>,List<Double>,List<Double>>?{
+    fun normalize(items:List<HistoryItems>, size:Int = 100, center: Double=0.0):Triple<List<Double>,List<Double>,List<Double>>{
         var xList = items.map { it.distance[0] }
         var yList = items.map { it.distance[1] }
         var zList = items.map { it.distance[2] }
 
-        xList = centrolize(xList)
-        yList = centrolize(yList)
-        zList = centrolize(zList)
+        xList = centrolize(xList, center)
+        yList = centrolize(yList, center)
+        zList = centrolize(zList, center)
 
 
         val xmax = xList.max()
         val xmin = xList.min()
         val xdis = xmax - xmin
 
-        val ymax = xList.max()
-        val ymin = xList.min()
+        val ymax = yList.max()
+        val ymin = yList.min()
         val ydis = ymax - ymin
 
         val zmax = zList.max()
@@ -171,34 +186,54 @@ class MyConverter {
         var min = 0.0
         var max = 0.0
 
-        if (xdis>zdis){
+        if (xdis>zdis) {
             max = xmax
             min = xmin
+        }else if (ydis>zdis){
+            max = ymax
+            min = ymin
         }else{
             max = zmax
             min = zmin
         }
         val dis = max - min
-        val res = size/dis
-
-        val resy = size/ydis
+        val res = (size-1)/dis  // 0 ..100 -> 0 ..99
 
         xList = xList.map { it ->  it*res}
-        yList = yList.map { it ->  it*resy}
+        yList = yList.map { it ->  it*res}
         zList = zList.map { it ->  it*res}
 
 
         return Triple(xList, yList, zList)
     }
-    fun centrolize(values:List<Double>) : List<Double>{
+    fun centrolize(values:List<Double>, center:Double=0.0) : List<Double>{
         val max = values.max()
         val min = values.min()
 //        val dis = max - min
-        val center = (max + min)/2.0
-
-        return values.map { it-center }
+        val mean = (max + min)/2.0
+        val center_shift = center - mean
+        return values.map { it+center_shift }
     }
 
+    fun interpolateLines(xyzs:Triple<List<Double>,List<Double>,List<Double>>): List<Pair<Int,Int>> {
+        val interpolate_points = mutableListOf<Pair<Int,Int>>()
+        val xs = xyzs.first
+        val ys = xyzs.second
+        val zs = xyzs.third
+
+        for (i in 0 until xs.size-1) {
+
+            val start = Pair(Math.round(xs[i]).toInt(),Math.round(zs[i]).toInt())
+            val end = Pair(Math.round(xs[i+1]).toInt(),Math.round(zs[i+1]).toInt())
+            val tmpinterpolatepoints = interpolateLine(start, end)
+            if (i == 0){
+                interpolate_points.add(start)
+            }
+            interpolate_points.addAll(tmpinterpolatepoints)
+            interpolate_points.add(end)
+        }
+        return interpolate_points
+    }
     fun interpolateLine(start: Pair<Int,Int>, end:Pair<Int,Int>): List<Pair<Int,Int>> {
         val interpolate_points = mutableListOf<Pair<Int,Int>>()
         val deltaX = end.first - start.first
@@ -208,32 +243,83 @@ class MyConverter {
         var endPoint = Pair(end.first, end.second)
 
         if ( deltaX == 0 && deltaY == 0) {
-            Log.e("AAAA","3")
             return interpolate_points
         }
         //follow X
         else if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-            Log.e("AAAA","1 : ${startPoint.first.rangeTo(endPoint.first)}")
             val slope = deltaY.toDouble() / deltaX.toDouble() //deltaX always > 0
-            for (x in startPoint.first.rangeTo(endPoint.first) ){
-                Log.e("AAAA","${x}")
-                val y = (x - startPoint.first) * slope + startPoint.second
-                interpolate_points.add(Pair(x,Math.round(y).toInt()))
+            for (x in startPoint.first.toward(endPoint.first) ){
+                val y_ = (x - startPoint.first) * slope + startPoint.second
+                val y = Math.round(y_).toInt()
+                val p = Pair(x,y)
+                interpolate_points.add(p)
             }
         //follow Y to avoid infiniate slope (X=0)
         }else{ // if (Math.abs(deltaX) < Math.abs(deltaY)){
-            Log.e("AAAA","2")
             val slope = deltaX.toDouble() / deltaY.toDouble() //deltaY always > 0
-            for (y in startPoint.second.rangeTo(endPoint.second) ){
-                val x = (y - startPoint.second) * slope + startPoint.first
-                interpolate_points.add(Pair(Math.round(x).toInt(),y))
+            for (y in startPoint.second.toward(endPoint.second) ){
+                val x_ = (y - startPoint.second) * slope + startPoint.first
+                val x = Math.round(x_).toInt()
+                val p = Pair(x,y)
+                interpolate_points.add(p)
             }
         }
-
+        interpolate_points.subList(0, interpolate_points.size-1)  // remove first and last (keep new points only)
         return interpolate_points
     }
+    fun savetoBitmap(rasterize_strokes: List<Triple<Int,Int,Int>>, size:Int){
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
 
+        for (point_i in 0 until rasterize_strokes.size) {
+            val point = rasterize_strokes[point_i]
+            var x = point.first
+            var z = point.second
+            var color = point.third
+            x = min(max(x, 0), size-1)
+            z = min(max(size-1-z, 0), size-1)  //reverse y in bitmap
+            bmp.setPixel(x, z, color) // 設定像素的色彩值
+        }
+        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
+        val uuidname = "${UUID.randomUUID()}.PNG"
+
+        val file = File(downloadsDirectory, uuidname)
+
+        try {
+            FileOutputStream(file).use { fos ->
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, fos)
+            }
+            Log.d("MainActivity", "寫入成功")
+        } catch (e: IOException) {
+            Log.e("MainActivity", "寫入失敗：${e.localizedMessage}")
+        }
+    }
+    fun rasterize_stroke(stroke_points:List<Pair<Int,Int>>, size:Int) : List<Triple<Int,Int,Int>>{
+        val colors = generateGradient(stroke_points.size)
+        val rasterize_strokes = mutableListOf<Triple<Int,Int,Int>>()
+        var xList = centrolize(stroke_points.map { it.first.toDouble() }, size.toDouble()/2)
+        var zList = centrolize(stroke_points.map { it.second.toDouble() }, size.toDouble()/2)
+
+        for (point_index in 0 until xList.size) {
+            var x = Math.round(xList[point_index]).toInt()
+            var z = Math.round(zList[point_index]).toInt()
+            var color = colors[point_index]
+            x = min(max(x, 0), size)
+            z = min(max(z, 0), size)
+            rasterize_strokes.add(Triple(x,z,color))
+        }
+        return rasterize_strokes
+    }
+    fun generateGradient(n: Int): List<Int> {
+        val colors = mutableListOf<Int>()
+        val hueStep = 180f / n
+        var hue = 360f
+        for(i in 0 until n) {
+            colors.add(Color.HSVToColor(floatArrayOf(hue, 1f, 1f)))
+            hue -= hueStep
+        }
+        return colors
+    }
     fun trapz(prev: HistoryItems?, linear_acc:D1Array<Double>, nano_timestamp: Long): HistoryItems {
         if (prev != null) {
             var dt = (nano_timestamp - prev.nano_timestamp).toDouble()

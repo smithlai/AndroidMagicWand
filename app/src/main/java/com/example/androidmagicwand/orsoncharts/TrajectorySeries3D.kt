@@ -17,9 +17,18 @@ import com.orsoncharts.android.plot.XYZPlot
 class TrajectorySeries3D{
     constructor() {}
     private lateinit var orson_chartview:ChartSurfaceView
+    private var min:Double=-50.0
+    private var max:Double=50.0
     fun setup(orson_chartview: ChartSurfaceView) {
         this.orson_chartview = orson_chartview
         updateDataXYZ(listOf<Double>(),listOf<Double>(),listOf<Double>())
+    }
+    fun setRange(min:Double=-50.0, max:Double=50.0){
+        if (min == max){
+            return
+        }
+        this.min = min
+        this.max = max
     }
     fun myrand(){
 
@@ -54,7 +63,7 @@ class TrajectorySeries3D{
             )
         })
     }
-    fun updateDataXYZ(x: List<Double>, y: List<Double>, z: List<Double>, min:Double=-50.0, max:Double=50.0) {
+    fun updateDataXYZ(x: List<Double>, y: List<Double>, z: List<Double>) {
 
         val series = XYZSeries("Trajectory")
         for (i in 0 until x.size){
