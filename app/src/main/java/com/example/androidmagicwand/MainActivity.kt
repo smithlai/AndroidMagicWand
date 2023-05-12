@@ -5,7 +5,10 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.androidplot.xy.XYPlot
 import com.example.androidmagicwand.mpchartplot.TrajectorySeries
@@ -14,7 +17,6 @@ import com.example.androidmagicwand.orsoncharts.TrajectorySeries3D
 import com.orsoncharts.android.ChartSurfaceView
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
-import org.jetbrains.kotlinx.multik.ndarray.data.get
 
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
@@ -28,7 +30,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 //    private var gyroTextView: TextView? = null
 //    private var imuTextView: TextView? = null
 //    private var gravTextView: TextView? = null
-    private var linearTextView: TextView? = null
+//    private var linearTextView: TextView? = null
 //    private var orientationTextView: TextView? = null
 
     private lateinit var myplot: XYPlot
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private val converter = MyConverter()
     private var previous_stroke:Triple<List<Double>,List<Double>,List<Double>>? = null
+    private var previous_acc:Triple<List<Double>,List<Double>,List<Double>>? = null
     private var prev_timestamp:Long = 0
     private var triggered:Long = 0
     val glagent = GLesAgent()
@@ -48,8 +51,23 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 //        gyroTextView = findViewById<TextView>(R.id.gyroTextView)
 //        imuTextView = findViewById<TextView>(R.id.imuTextView)
 //        gravTextView = findViewById<TextView>(R.id.gravTextView)
-        linearTextView = findViewById<TextView>(R.id.linearTextView)
+//        linearTextView = findViewById<TextView>(R.id.linearTextView)
 //        orientationTextView = findViewById<TextView>(R.id.orientationTextView)
+        val submitButton = findViewById<TextView>(R.id.save_to_json) as Button
+        val labelname = findViewById<TextView>(R.id.labelname) as EditText
+        submitButton.setOnClickListener {
+            val text = labelname.text.toString()
+            if (text.length > 0) {
+                if (!converter.trajectoryJson.confirmStroke(text))
+                    return@setOnClickListener
+                if (converter.trajectoryJson.saveToFile(converter.trajectoryJson.filename)) {
+                    val message = "json saved"
+                    val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
+                    toast.show()
+                }
+            }
+        }
+
         // 取得 SensorManager 實例
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
@@ -124,10 +142,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 //            w_linear = converter.toEatrhFrame(w_linear)
             converter.add_earth_linear(w_linear, System.nanoTime())
 
-            linearTextView!!.text = "Time:\n "+
-                    "X: ${(w_linear[0]*1_000).toInt()}\n"+
-                    "Y: ${(w_linear[1]*1_000).toInt()}\n"+
-                    "Z: ${(w_linear[2]*1_000).toInt()}"
+//            linearTextView!!.text = "Time:\n "+
+//                    "X: ${(w_linear[0]*1_000).toInt()}\n"+
+//                    "Y: ${(w_linear[1]*1_000).toInt()}\n"+
+//                    "Z: ${(w_linear[2]*1_000).toInt()}"
 //            orientationTextView!!.text = "Linear Acc\n: ${w_linear.get(0)}\n${w_linear.get(1)}\n${w_linear.get(2)}\n"
 
             if (System.nanoTime() - triggered > 10_000_000L) {
@@ -138,7 +156,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         trajectorySeries2D.updateDataXYZ(stroke.first, stroke.second, stroke.third)
                         trajectorySeries2D.notifyObservers()
 
-                        trajectorySeries3D.updateDataXYZ(stroke.first, stroke.second, stroke.third)
+                        val stroke_acc = converter.stroke_acc
+//                        Log.e("AAA", "stroke_acc:${stroke_acc}")
+                        trajectorySeries3D.updateDataXYZ(stroke.first, stroke.second, stroke.third,
+                            stroke_acc?.first, stroke_acc?.second, stroke_acc?.third)
 
                         triggered = System.nanoTime()
                         previous_stroke = stroke

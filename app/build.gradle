@@ -42,6 +42,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:multik-default:0.2.0")
     implementation "com.androidplot:androidplot-core:1.5.10"
     implementation project(path: ':orsonchartsforandroid')
+    implementation 'com.google.code.gson:gson:2.10.1'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

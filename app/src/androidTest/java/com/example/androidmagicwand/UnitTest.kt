@@ -41,6 +41,17 @@ class UnitTest {
         var f2 = c.interpolateLine(Pair(100,0), Pair(0,100))
         var f2_correct = (100 downTo 0).map { it to 100-it }
         assertEquals(f2_correct, f2)
-
     }
+    @Test
+    fun trajectory_isCorrect() {
+        val c = MyConverter()
+        val json = c.trajectoryJson
+        json.setTemp(listOf(Pair(0.0,0.0),Pair(1.0,1.0),Pair(2.0,2.0)))
+        json.confirmStroke("aaa")
+        json.setTemp(listOf(Pair(3.0,3.0),Pair(4.0,4.0),Pair(5.0,5.0)))
+        json.confirmStroke("aaa")
+        val correct_ans = "{\"strokes\":[{\"index\":0,\"label\":\"aaa\",\"strokePoints\":[{\"x\":0,\"y\":0},{\"x\":1,\"y\":1},{\"x\":2,\"y\":2}]},{\"index\":1,\"label\":\"aaa\",\"strokePoints\":[{\"x\":3,\"y\":3},{\"x\":4,\"y\":4},{\"x\":5,\"y\":5}]}]}"
+        assertEquals(json.mJson.toString(), correct_ans)
+    }
+
 }

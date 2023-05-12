@@ -21,7 +21,7 @@ class TrajectorySeries3D{
     private var max:Double=50.0
     fun setup(orson_chartview: ChartSurfaceView) {
         this.orson_chartview = orson_chartview
-        updateDataXYZ(listOf<Double>(),listOf<Double>(),listOf<Double>())
+        updateDataXYZ(listOf<Double>(),listOf<Double>(),listOf<Double>(),listOf<Double>(),listOf<Double>(),listOf<Double>())
     }
     fun setRange(min:Double=-50.0, max:Double=50.0){
         if (min == max){
@@ -63,14 +63,21 @@ class TrajectorySeries3D{
             )
         })
     }
-    fun updateDataXYZ(x: List<Double>, y: List<Double>, z: List<Double>) {
-
+    fun updateDataXYZ(x: List<Double>, y: List<Double>, z: List<Double>, ax: List<Double>?, ay: List<Double>?, az: List<Double>?) {
+        val dataset = XYZSeriesCollection()
         val series = XYZSeries("Trajectory")
         for (i in 0 until x.size){
             series.add(x[i],y[i],z[i])
         }
-        val dataset = XYZSeriesCollection()
         dataset.add(series)
+        if (null != ax && null != ay && null != az){
+            val series2 = XYZSeries("Acc")
+            for (i in 0 until ax.size){
+                series2.add(ax[i],ay[i],az[i])
+            }
+            dataset.add(series2)
+        }
+
         val chart = Chart3DFactory.createScatterChart(
             "Scatter Chart", "3D Trajectory",
             dataset, "X", "Y", "Z"
