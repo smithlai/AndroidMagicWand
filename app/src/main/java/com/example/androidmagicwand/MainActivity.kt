@@ -17,6 +17,7 @@ import com.example.androidmagicwand.orsoncharts.TrajectorySeries3D
 import com.orsoncharts.android.ChartSurfaceView
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
+import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
 
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var previous_acc:Triple<List<Double>,List<Double>,List<Double>>? = null
     private var prev_timestamp:Long = 0
     private var triggered:Long = 0
+
     val glagent = GLesAgent()
 
     private lateinit var trajectorySeries3D: TrajectorySeries3D

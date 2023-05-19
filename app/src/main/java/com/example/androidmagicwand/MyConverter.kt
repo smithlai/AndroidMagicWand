@@ -45,6 +45,8 @@ class MyConverter {
     private set
     var trajectoryJson = TrajectoryJson()
     private var rotationMatrix:D2Array<Double> = Null_RotationMatrix
+    private var mEarthlinearBuffer:MutableList<Pair<D1Array<Double>, Long>> = mutableListOf()
+    private var isBusying = false
     constructor(){
 
     }
@@ -107,10 +109,28 @@ class MyConverter {
         return earthxyz
     }
 
+    @Synchronized
     fun add_earth_linear(linear_xyz:D1Array<Double>, nano_timestamp:Long){
-        val last = historyItems.lastOrNull()
-        val new_history = trapz(last, linear_xyz, nano_timestamp)
-        historyItems.add(new_history)
+        mEarthlinearBuffer.add(Pair(linear_xyz, nano_timestamp))
+        if (isBusying) {
+            return
+        }
+        isBusying=true
+        val buffer2 = mEarthlinearBuffer
+        mEarthlinearBuffer = mutableListOf()
+        calcxxx(buffer2)
+        isBusying=false
+
+    }
+    @Synchronized
+    private fun calcxxx(buffer:MutableList<Pair<D1Array<Double>, Long>> ){
+        var last = historyItems.lastOrNull()
+        for (b in buffer){
+            val new_history = trapz(last, b.first, b.second)
+            historyItems.add(new_history)
+        }
+
+
         if (!isRecording) {
             if (historyItems.size >= HISTORY_START_BUFFER) {
                 val istart = max(historyItems.size - HISTORY_START_BUFFER, 0)
@@ -123,7 +143,6 @@ class MyConverter {
                 }
             }
         }else{
-
             if (historyItems.size >= HISTORY_END_BUFFER+HISTORY_START_BUFFER) {
                 val iend = max(historyItems.size - HISTORY_END_BUFFER, 0)
                 val sublist1 = historyItems.subList(iend, historyItems.size)
@@ -135,6 +154,7 @@ class MyConverter {
                     isRecording = false
                     historyItems = mutableListOf<HistoryItems>()
                     var sublist3 = trim_last(sublist2, TRIM_TAIL_MS)
+                    sublist3.maxOf { it -> it.nano_timestamp }
                     var xList = sublist3.map { it.distance[0] }
                     var yList = sublist3.map { it.distance[1] }
                     var zList = sublist3.map { it.distance[2] }
@@ -168,7 +188,6 @@ class MyConverter {
                     stroke = normalize(xList, yList, zList, 100)
                 }
             }
-
         }
     }
     private fun trim_last(list:MutableList<HistoryItems>, trim_ms:Int):MutableList<HistoryItems>{
@@ -333,28 +352,7 @@ class MyConverter {
             Log.e("MainActivity", "寫入失敗：${e.localizedMessage}")
         }
     }
-//    private fun colorize_stroke(stroke_points:List<Pair<Int,Int>>, size:Int, margin:Float=0.0f) : List<Triple<Int,Int,Int>>{
-//        val colors = generateGradient(stroke_points.size)
-//        val rasterize_strokes = mutableListOf<Triple<Int,Int,Int>>()
-//        val xyzlist = normalize(stroke_points.map { it.first.toDouble() },
-//            stroke_points.map { 0.0 },
-//            stroke_points.map { it.second.toDouble() },
-//            (size*(1.0-margin*2)).toInt(),
-//            (size/2.0))
-//        var xList = xyzlist.first
-//        var yList = xyzlist.second
-//        var zList = xyzlist.third
-//
-//        for (point_index in 0 until xList.size) {
-//            var x = Math.round(xList[point_index]).toInt()
-//            var z = Math.round(zList[point_index]).toInt()
-//            var color = colors[point_index]
-//            x = min(max(x, 0), size)
-//            z = min(max(z, 0), size)
-//            rasterize_strokes.add(Triple(x,z,color))
-//        }
-//        return rasterize_strokes
-//    }
+
     fun rasterizeStroke(xList: List<Double>, yList: List<Double>, zList: List<Double>, size: Int, margin: Float): List<Triple<Int, Int, Int>> {
         val rasterizeStrokes = mutableListOf<Triple<Int, Int, Int>>()
         val xyzlist = normalize(xList, yList, zList,

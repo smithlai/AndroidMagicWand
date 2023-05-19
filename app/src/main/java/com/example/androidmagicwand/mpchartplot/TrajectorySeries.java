@@ -81,6 +81,7 @@ public class TrajectorySeries implements XYSeries {
 
         // uncomment this line to freeze the range boundaries:
         dynamicPlotTable.setRangeBoundaries(-50, 50, BoundaryMode.FIXED);
+        dynamicPlotTable.setDomainBoundaries(-50, 50, BoundaryMode.FIXED);
 
         // create a dash effect for domain and range grid lines:
         DashPathEffect dashFx = new DashPathEffect(
