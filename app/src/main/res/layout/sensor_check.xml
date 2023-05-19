@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2015 AndroidPlot.com
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:ap="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:id="@+id/graphLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+        <com.androidplot.xy.XYPlot
+            android:id="@+id/dynamic_acc_Plot"
+            style="@style/APDefacto.Dark"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            ap:domainTitle="Domain"
+            ap:legendAnchor="right_bottom"
+            ap:legendHeight="25dp"
+            ap:legendIconHeight="15dp"
+            ap:legendIconWidth="15dp"
+            ap:legendTextSize="15sp"
+            ap:rangeTitle="Range"
+            ap:title="TYPE_ACCELEROMETER"
+            ap:renderMode="use_background_thread"/>
+        <com.androidplot.xy.XYPlot
+            android:id="@+id/dynamic_grav_Plot"
+
+            style="@style/APDefacto.Dark"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            ap:domainTitle="Domain"
+            ap:legendAnchor="right_bottom"
+            ap:legendHeight="25dp"
+            ap:legendIconHeight="15dp"
+            ap:legendIconWidth="15dp"
+            ap:legendTextSize="15sp"
+            ap:rangeTitle="Range"
+            ap:title="TYPE_GRAVITY"
+            ap:renderMode="use_background_thread"/>
+        <com.androidplot.xy.XYPlot
+            android:id="@+id/dynamic_gyro_Plot"
+            style="@style/APDefacto.Dark"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            ap:domainTitle="Domain"
+            ap:legendAnchor="right_bottom"
+            ap:legendHeight="25dp"
+            ap:legendIconHeight="15dp"
+            ap:legendIconWidth="15dp"
+            ap:legendTextSize="15sp"
+            ap:rangeTitle="Range"
+            ap:title="TYPE_GYROSCOPE"
+            ap:renderMode="use_background_thread"/>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <CheckBox
+                android:id="@+id/hwAccelerationCb"
+                android:visibility="gone"
+                android:text="HW Acceleration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <CheckBox
+                android:id="@+id/showFpsCb"
+                android:text="Show FPS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
