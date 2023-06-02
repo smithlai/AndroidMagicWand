@@ -1,4 +1,5 @@
 package com.example.androidmagicwand
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Environment
@@ -43,12 +44,16 @@ class MyConverter {
     var stroke:Triple<List<Double>,List<Double>,List<Double>>? = null
     var stroke_acc:Triple<List<Double>,List<Double>,List<Double>>? = null
     private set
+
     var trajectoryJson = TrajectoryJson()
     private var rotationMatrix:D2Array<Double> = Null_RotationMatrix
     private var mEarthlinearBuffer:MutableList<Pair<D1Array<Double>, Long>> = mutableListOf()
     private var isBusying = false
-    constructor(){
-
+    private var context:Context
+    private var classifier:TrajectoryClassifier
+    constructor(context: Context){
+        this.context = context
+        classifier = TrajectoryClassifier.create(context)
     }
 
 //    fun setLinear(new_grav:FloatArray){
@@ -118,12 +123,12 @@ class MyConverter {
         isBusying=true
         val buffer2 = mEarthlinearBuffer
         mEarthlinearBuffer = mutableListOf()
-        calcxxx(buffer2)
+        cal_stroke(buffer2)
         isBusying=false
 
     }
     @Synchronized
-    private fun calcxxx(buffer:MutableList<Pair<D1Array<Double>, Long>> ){
+    private fun cal_stroke(buffer:MutableList<Pair<D1Array<Double>, Long>> ){
         var last = historyItems.lastOrNull()
         for (b in buffer){
             val new_history = trapz(last, b.first, b.second)
@@ -163,23 +168,17 @@ class MyConverter {
                     // To display
                     stroke = normalize(xList, yList, zList, 100)
 
-//                    var xaccList = sublist3.map { it.acc[0] }
-//                    var yaccList = sublist3.map { it.acc[1] }
-//                    var zaccList = sublist3.map { it.acc[2] }
-//                    val acc = normalize(xaccList, yaccList, zaccList, 50)
-//
-//
-//                    var xaccList2 = stroke!!.first.zip(acc.first).map { it.first + it.second }
-//                    var yaccList2 = stroke!!.second.zip(acc.second).map { it.first + it.second }
-//                    var zaccList2 = stroke!!.third.zip(acc.third).map { it.first + it.second }
-//
-//                    stroke_acc = Triple(xaccList2,yaccList2,zaccList2)
+//                    val rasterize_stroke = rasterizeStroke(stroke!!.first, stroke!!.second,stroke!!.third,BMP_SIZE, BMP_MARGIN_F)
+//                    savetoBitmap(rasterize_stroke,BMP_SIZE)
 
-                    // To Bitmap
-
-//                    val interpolate_points = interpolateLines(stroke!!)
-                    val rasterize_stroke = rasterizeStroke(stroke!!.first, stroke!!.second,stroke!!.third,BMP_SIZE, BMP_MARGIN_F)
-                    savetoBitmap(rasterize_stroke,BMP_SIZE)
+                    val rasterize_stroke = rasterizeStroke(stroke!!.first, stroke!!.second,stroke!!.third,
+                        MyConverter.BMP_SIZE,
+                        MyConverter.BMP_MARGIN_F
+                    )
+                    val bitmap = savetoBitmap(rasterize_stroke)
+                    val index = classifier.inferenceImage(bitmap)
+                    val label = classifier.mapToLabel(index)
+                    Log.e("AAA", label)
 
                 }else{
                     var xList = sublist2.map { it.distance[0] }
@@ -325,7 +324,7 @@ class MyConverter {
         interpolate_points.subList(1, interpolate_points.size-1)  // remove first and last (keep new points only)
         return interpolate_points
     }
-    private fun savetoBitmap(rasterize_strokes: List<Triple<Int,Int,Int>>, size:Int){
+    public fun savetoBitmap(rasterize_strokes: List<Triple<Int,Int,Int>>, size:Int=BMP_SIZE, toFile:String?=null): Bitmap{
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
 
         for (point_i in 0 until rasterize_strokes.size) {
@@ -337,20 +336,24 @@ class MyConverter {
             z = min(max(size-1-z, 0), size-1)  //reverse y in bitmap
             bmp.setPixel(x, z, color) // 設定像素的色彩值
         }
-        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        toFile?.let{
+            val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
-        val uuidname = "${UUID.randomUUID()}.PNG"
+            val uuidname = "${it}.PNG"   // "${UUID.randomUUID()}.PNG"
 
-        val file = File(downloadsDirectory, uuidname)
+            val file = File(downloadsDirectory, uuidname)
 
-        try {
-            FileOutputStream(file).use { fos ->
-                bmp.compress(Bitmap.CompressFormat.PNG, 100, fos)
+            try {
+                FileOutputStream(file).use { fos ->
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, fos)
+                }
+                Log.d("MainActivity", "寫入成功")
+            } catch (e: IOException) {
+                Log.e("MainActivity", "寫入失敗：${e.localizedMessage}")
             }
-            Log.d("MainActivity", "寫入成功")
-        } catch (e: IOException) {
-            Log.e("MainActivity", "寫入失敗：${e.localizedMessage}")
         }
+        return bmp
+
     }
 
     fun rasterizeStroke(xList: List<Double>, yList: List<Double>, zList: List<Double>, size: Int, margin: Float): List<Triple<Int, Int, Int>> {

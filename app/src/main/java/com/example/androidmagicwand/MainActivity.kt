@@ -18,34 +18,29 @@ import com.orsoncharts.android.ChartSurfaceView
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
 import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
-
+import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.support.common.FileUtil
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
 //    private var gyroSensor: Sensor? = null
-    private var imuSensor: Sensor? = null
-    private var gravSensor: Sensor? = null
+//    private var imuSensor: Sensor? = null
+//    private var gravSensor: Sensor? = null
     private var linearSensor: Sensor? = null
     private var rotationSensor: Sensor? = null
 
-//    private var gyroTextView: TextView? = null
-//    private var imuTextView: TextView? = null
-//    private var gravTextView: TextView? = null
-//    private var linearTextView: TextView? = null
-//    private var orientationTextView: TextView? = null
 
     private lateinit var myplot: XYPlot
     private lateinit var trajectorySeries2D: TrajectorySeries
 
-    private val converter = MyConverter()
+    private lateinit var converter:MyConverter
     private var previous_stroke:Triple<List<Double>,List<Double>,List<Double>>? = null
-    private var previous_acc:Triple<List<Double>,List<Double>,List<Double>>? = null
+//    private var previous_acc:Triple<List<Double>,List<Double>,List<Double>>? = null
     private var prev_timestamp:Long = 0
     private var triggered:Long = 0
 
-    val glagent = GLesAgent()
-
     private lateinit var trajectorySeries3D: TrajectorySeries3D
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +65,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
         }
 
+        converter = MyConverter(this)
+
+
         // 取得 SensorManager 實例
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
@@ -92,13 +90,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         trajectorySeries2D.setup(myplot)
 
 
-//        val mGLTextureView = findViewById<myGLTextureView>(R.id.glSurfaceView) as myGLTextureView?
-//        if (!glagent.setup(this,mGLTextureView)){
-//            finish()
-//        }
         val orson_chartview = findViewById(R.id.chartView) as ChartSurfaceView
         trajectorySeries3D = TrajectorySeries3D().also { it.setup(orson_chartview!!)}
-
 
     }
 
@@ -116,15 +109,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         sensorManager.registerListener(this, linearSensor, SensorManager.SENSOR_DELAY_FASTEST)
         sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_FASTEST)
 
-
-        glagent?.onResume()
     }
 
     public override fun onPause() {
         // 取消註冊陀螺儀和 IMU 監聽器
         sensorManager.unregisterListener(this)
-
-        glagent.onPause()
 
         super.onPause()
 
