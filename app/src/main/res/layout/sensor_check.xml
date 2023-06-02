@@ -15,82 +15,111 @@
   ~    limitations under the License.
   -->
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--<FrameLayout -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:ap="http://schemas.android.com/apk/res-auto">
-    <LinearLayout
-        android:id="@+id/graphLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:orientation="vertical">
-        <com.androidplot.xy.XYPlot
-            android:id="@+id/dynamic_acc_Plot"
-            style="@style/APDefacto.Dark"
-            android:layout_width="fill_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            ap:domainTitle="Domain"
-            ap:legendAnchor="right_bottom"
-            ap:legendHeight="25dp"
-            ap:legendIconHeight="15dp"
-            ap:legendIconWidth="15dp"
-            ap:legendTextSize="15sp"
-            ap:rangeTitle="Range"
-            ap:title="TYPE_ACCELEROMETER"
-            ap:renderMode="use_background_thread"/>
-        <com.androidplot.xy.XYPlot
-            android:id="@+id/dynamic_grav_Plot"
 
-            style="@style/APDefacto.Dark"
-            android:layout_width="fill_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            ap:domainTitle="Domain"
-            ap:legendAnchor="right_bottom"
-            ap:legendHeight="25dp"
-            ap:legendIconHeight="15dp"
-            ap:legendIconWidth="15dp"
-            ap:legendTextSize="15sp"
-            ap:rangeTitle="Range"
-            ap:title="TYPE_GRAVITY"
-            ap:renderMode="use_background_thread"/>
-        <com.androidplot.xy.XYPlot
-            android:id="@+id/dynamic_gyro_Plot"
-            style="@style/APDefacto.Dark"
-            android:layout_width="fill_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            ap:domainTitle="Domain"
-            ap:legendAnchor="right_bottom"
-            ap:legendHeight="25dp"
-            ap:legendIconHeight="15dp"
-            ap:legendIconWidth="15dp"
-            ap:legendTextSize="15sp"
-            ap:rangeTitle="Range"
-            ap:title="TYPE_GYROSCOPE"
-            ap:renderMode="use_background_thread"/>
-        <LinearLayout
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
 
-            <CheckBox
-                android:id="@+id/hwAccelerationCb"
-                android:visibility="gone"
-                android:text="HW Acceleration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            <LinearLayout
+            android:id="@+id/graphLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/dynamic_acc_Plot"
+                    style="@style/APDefacto.Dark"
+                    android:layout_width="fill_parent"
+                    android:layout_height="300dp"
+                    ap:legendAnchor="right_bottom"
+                    ap:legendHeight="10dp"
+                    ap:legendIconHeight="15dp"
+                    ap:legendIconWidth="15dp"
+                    ap:legendTextSize="10sp"
+                    ap:renderMode="use_background_thread"/>
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/dynamic_acc2_Plot"
+                    style="@style/APDefacto.Dark"
+                    android:layout_width="fill_parent"
+                    android:layout_height="300dp"
+                    ap:legendAnchor="right_bottom"
+                    ap:legendHeight="10dp"
+                    ap:legendIconHeight="15dp"
+                    ap:legendIconWidth="15dp"
+                    ap:legendTextSize="10sp"
+                    ap:renderMode="use_background_thread"/>
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/dynamic_grav_Plot"
+                    style="@style/APDefacto.Dark"
+                    android:layout_width="fill_parent"
+                    android:layout_height="300dp"
+                    ap:legendAnchor="right_bottom"
+                    ap:legendHeight="10dp"
+                    ap:legendIconHeight="15dp"
+                    ap:legendIconWidth="15dp"
+                    ap:legendTextSize="10sp"
+                    ap:renderMode="use_background_thread"/>
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/dynamic_gyro_Plot"
+                    style="@style/APDefacto.Dark"
+                    android:layout_width="fill_parent"
+                    android:layout_height="300dp"
+                    ap:legendAnchor="right_bottom"
+                    ap:legendHeight="10dp"
+                    ap:legendIconHeight="15dp"
+                    ap:legendIconWidth="15dp"
+                    ap:legendTextSize="10sp"
+                    ap:renderMode="use_background_thread"/>
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/dynamic_gyro2_Plot"
+                    style="@style/APDefacto.Dark"
+                    android:layout_width="fill_parent"
+                    android:layout_height="300dp"
+                    ap:legendAnchor="right_bottom"
+                    ap:legendHeight="10dp"
+                    ap:legendIconHeight="15dp"
+                    ap:legendIconWidth="15dp"
+                    ap:legendTextSize="10sp"
+                    ap:renderMode="use_background_thread"/>
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/dynamic_mag_Plot"
+                    style="@style/APDefacto.Dark"
+                    android:layout_width="fill_parent"
+                    android:layout_height="300dp"
+                    ap:legendAnchor="right_bottom"
+                    ap:legendHeight="10dp"
+                    ap:legendIconHeight="15dp"
+                    ap:legendIconWidth="15dp"
+                    ap:legendTextSize="10sp"
+                    ap:renderMode="use_background_thread"/>
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_width="fill_parent"
+                android:layout_height="100dp">
 
-            <CheckBox
-                android:id="@+id/showFpsCb"
-                android:text="Show FPS"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                <CheckBox
+                    android:id="@+id/hwAccelerationCb"
+                    android:text="HW Acceleration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <CheckBox
+                    android:id="@+id/showFpsCb"
+                    android:text="Show FPS"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/showStepText"
+                    android:text="XXX"
+                    android:layout_width="300dp"
+                    android:layout_height="20dp"/>
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-
-</FrameLayout>
+</ScrollView>
+<!--</FrameLayout>-->

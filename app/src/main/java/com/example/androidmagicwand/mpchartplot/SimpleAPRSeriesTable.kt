@@ -2,6 +2,8 @@ package com.example.androidmagicwand.mpchartplot
 
 import android.graphics.Color
 import android.hardware.Sensor
+import com.androidplot.ui.SizeMetric
+import com.androidplot.ui.SizeMode
 import com.androidplot.util.PlotStatistics
 import com.androidplot.xy.BoundaryMode
 import com.androidplot.xy.LineAndPointFormatter
@@ -10,6 +12,7 @@ import com.androidplot.xy.StepMode
 import com.androidplot.xy.XYGraphWidget
 import com.androidplot.xy.XYPlot
 import com.example.androidmagicwand.SensorCheckActivity
+import com.orsoncharts.android.legend.LegendAnchor
 import java.text.DecimalFormat
 
 class SimpleAPRSeriesTable{
@@ -34,7 +37,7 @@ class SimpleAPRSeriesTable{
     private constructor(){}
     public var sensor: Sensor? = null
 //    constructor(dynamicPlotTable: XYPlot): this(dynamicPlotTable)
-    constructor(xyplot: XYPlot, labeles:List<String> = listOf("X","Y","Z"), boundry:Pair<Int,Int> = Pair(-30,30), unitlabel:String="m/s^2", stepValue:Double=1.0){
+    constructor(title:String, xyplot: XYPlot, labeles:List<String> = listOf("X","Y","Z"), boundry:Pair<Int,Int> = Pair(-30,30), unitlabel:String="m/s^2", stepValue:Double=1.0){
         for (label in labeles){
             val s = SimpleXYSeries(label)
             dataseries.put(label, s)
@@ -50,6 +53,9 @@ class SimpleAPRSeriesTable{
         }
 
         xyplot.apply {
+            domainTitle.text="time"
+            this.title.text=title
+
             setRangeBoundaries(boundry.first, boundry.second, BoundaryMode.FIXED)
 //            centerOnRangeOrigin(0)
             setDomainBoundaries(0, HISTORY_SIZE, BoundaryMode.FIXED)
