@@ -168,17 +168,15 @@ class MyConverter {
                     // To display
                     stroke = normalize(xList, yList, zList, 100)
 
-//                    val rasterize_stroke = rasterizeStroke(stroke!!.first, stroke!!.second,stroke!!.third,BMP_SIZE, BMP_MARGIN_F)
-//                    savetoBitmap(rasterize_stroke,BMP_SIZE)
 
                     val rasterize_stroke = rasterizeStroke(stroke!!.first, stroke!!.second,stroke!!.third,
                         MyConverter.BMP_SIZE,
                         MyConverter.BMP_MARGIN_F
                     )
-                    val bitmap = savetoBitmap(rasterize_stroke)
+                    val bitmap = savetoBitmap(rasterize_stroke/*, toFile = UUID.randomUUID().toString()*/)
                     val index = classifier.inferenceImage(bitmap)
                     val label = classifier.mapToLabel(index)
-                    Log.e("AAA", label)
+                    Log.e("Detect:", label)
 
                 }else{
                     var xList = sublist2.map { it.distance[0] }
@@ -379,10 +377,10 @@ class MyConverter {
     private fun generateGradient(n: Int): List<Int> {
         val colors = mutableListOf<Int>()
         val hueStep = 180f / n
-        var hue = 360f
+        var hue = 0f
         for(i in 0 until n) {
             colors.add(Color.HSVToColor(floatArrayOf(hue, 1f, 1f)))
-            hue -= hueStep
+            hue += hueStep
         }
         return colors
     }
